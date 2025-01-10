@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Orders</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+
+<body class="bg-gray-900 text-gray-100 font-sans">
+
+  <nav class="bg-gray-800 w-full p-4">
+    <div class="max-w-7xl mx-auto flex justify-between">
+      <h1 class="text-xl font-semibold text-white">Order Summary</h1>
+      <div class="flex items-center space-x-4">
+        <a href="products.html" class="text-lg text-white hover:text-gray-300">Go to Products</a>
+        <button id="logoutBtn" class="bg-gray-600 px-4 py-2 rounded-md text-white hover:bg-gray-500">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto p-6">
+    <h2 class="text-2xl font-semibold mt-6">Your Orders</h2>
+
+    <div id="ordersList" class="mt-4 space-y-4">
+    </div>
+  </div>
+
+  <script>
+    (function checkAuthentication() {
+      const users = JSON.parse(localStorage.getItem("users"));
+      if (!users) {
+        window.location.href = "index.html";
+        return;
+      }
+      const authenticatedUser = users.find(u => u.isAuthenticated);
+      if (!authenticatedUser) {
+        window.location.href = "index.html";
+      }
+
+      const ordersList = document.getElementById("ordersList");
+      if (authenticatedUser.orders && authenticatedUser.orders.length > 0) {
+        authenticatedUser.orders.forEach(order => {
+          const orderDiv = document.createElement("div");
+          orderDiv.classList.add("bg-gray-800", "p-4", "rounded-lg", "shadow-md");
+          orderDiv.innerHTML = `
+            <h3 class="text-xl font-semibold">Order ID: ${order.orderId}</h3>
+            <p class="text-gray-400">Status: ${order.status}</p>
+            <p class="text-gray-400">Placed on: ${new Date(order.placedAt).toLocaleString()}</p>
+            <ul class="mt-4">
+              ${order.items.map(item => `
+                <li class="text-gray-300">- ${item.name} (Quantity: ${item.quantity}) ${item.addon ? `with ${item.addon}` : ''}</li>
+              `).join('')}
+            </ul>
+          `;
+          ordersList.appendChild(orderDiv);
+        });
+      } else {
+        ordersList.innerHTML = '<p class="text-gray-400">You have no orders yet.</p>';
+      }
+    })();
+
+    document.getElementById("logoutBtn").addEventListener("click", function () {
+      if (window.confirm("Do you wanna logout?")) {
+        const users = JSON.parse(localStorage.getItem("users"));
+        const authenticatedUser = users.find(u => u.isAuthenticated);
+        authenticatedUser.isAuthenticated = false;
+        localStorage.setItem("users", JSON.stringify(users));
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+</body>
+
+</html>
